@@ -1,4 +1,4 @@
-= High Speed Dirt =
+# High Speed Dirt
 
 Sometimes you just want to zip through a large JDBC result set, one record at a time, with as little marshalling overhead as possible.
 
