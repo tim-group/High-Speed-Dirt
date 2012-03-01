@@ -29,13 +29,13 @@ public class ResultSetAdapterTest {
             allowing(resultSet).getMetaData(); will(returnValue(metadata));
             
             allowing(metadata).getColumnCount(); will(returnValue(3));
-            allowing(metadata).getColumnName(2); will(returnValue("foo"));
-            allowing(metadata).getColumnName(1); will(returnValue("bar"));
-            allowing(metadata).getColumnName(0); will(returnValue("baz_id"));
+            allowing(metadata).getColumnName(3); will(returnValue("foo"));
+            allowing(metadata).getColumnName(2); will(returnValue("bar"));
+            allowing(metadata).getColumnName(1); will(returnValue("baz_id"));
             
-            allowing(resultSet).getObject(2); will(returnValue("Hello"));
-            allowing(resultSet).getObject(1); will(returnValue(23));
-            allowing(resultSet).getObject(0); will(returnValue(theDate));
+            allowing(resultSet).getObject(3); will(returnValue("Hello"));
+            allowing(resultSet).getObject(2); will(returnValue(23));
+            allowing(resultSet).getObject(1); will(returnValue(theDate));
         }});
     }
     

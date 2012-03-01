@@ -26,9 +26,9 @@ public class MetadataToEnumMapTransformerTest {
             allowing(resultSet).getMetaData(); will(returnValue(metadata));
             
             allowing(metadata).getColumnCount(); will(returnValue(3));
-            allowing(metadata).getColumnName(2); will(returnValue("foo"));
-            allowing(metadata).getColumnName(1); will(returnValue("bar"));
-            allowing(metadata).getColumnName(0); will(returnValue("baz"));
+            allowing(metadata).getColumnName(3); will(returnValue("foo"));
+            allowing(metadata).getColumnName(2); will(returnValue("bar"));
+            allowing(metadata).getColumnName(1); will(returnValue("baz"));
         }});
     }
     
@@ -44,9 +44,9 @@ public class MetadataToEnumMapTransformerTest {
         
         EnumMap<TestEnum1, Integer> indices = transformer.apply(metadata);
         
-        MatcherAssert.assertThat(indices.get(TestEnum1.foo), Matchers.is(2));
-        MatcherAssert.assertThat(indices.get(TestEnum1.bar), Matchers.is(1));
-        MatcherAssert.assertThat(indices.get(TestEnum1.baz), Matchers.is(0));
+        MatcherAssert.assertThat(indices.get(TestEnum1.foo), Matchers.is(3));
+        MatcherAssert.assertThat(indices.get(TestEnum1.bar), Matchers.is(2));
+        MatcherAssert.assertThat(indices.get(TestEnum1.baz), Matchers.is(1));
     }
     
     public static enum TestEnum2 {
@@ -70,9 +70,9 @@ public class MetadataToEnumMapTransformerTest {
         
         EnumMap<TestEnum2, Integer> indices = transformer.apply(metadata);
         
-        MatcherAssert.assertThat(indices.get(TestEnum2.FOO), Matchers.is(2));
-        MatcherAssert.assertThat(indices.get(TestEnum2.BAR), Matchers.is(1));
-        MatcherAssert.assertThat(indices.get(TestEnum2.BAZ), Matchers.is(0));
+        MatcherAssert.assertThat(indices.get(TestEnum2.FOO), Matchers.is(3));
+        MatcherAssert.assertThat(indices.get(TestEnum2.BAR), Matchers.is(2));
+        MatcherAssert.assertThat(indices.get(TestEnum2.BAZ), Matchers.is(1));
         
         context.assertIsSatisfied();
     }
