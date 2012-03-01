@@ -43,7 +43,7 @@ public class MetadataToEnumMapTransformer<E extends Enum<E>> implements Function
     private Map<String, Integer> getColumnIndices(ResultSetMetaData metadata) {
         ImmutableMap.Builder<String, Integer> indices = ImmutableMap.builder();
         try {
-            for (int i=0; i<metadata.getColumnCount(); i++) {
+            for (int i=1; i<=metadata.getColumnCount(); i++) {
                 indices.put(metadata.getColumnName(i), i);
             }
             return indices.build();
