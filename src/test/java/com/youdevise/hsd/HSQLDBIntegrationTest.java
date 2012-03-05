@@ -8,13 +8,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.base.Joiner;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 public class HSQLDBIntegrationTest {
 
@@ -33,7 +34,7 @@ public class HSQLDBIntegrationTest {
                 "       name VARCHAR(255),",
                 "       primary key(id));");
 
-        for (int i=0; i<100000; i++) {
+        for (int i=0; i<1000000; i++) {
             executeStatement("INSERT INTO test (name) values ('",
                              Integer.toString(i), "');");
         }
@@ -49,60 +50,73 @@ public class HSQLDBIntegrationTest {
         @Column("NAME") name
     }
     
-    public class Handler {
-        public int count = 0;
-        public boolean handle(int id, String name) {
-            count += 1;
-            return true;
-        }
-    }
-    
     public interface Record {
         int getId();
         String getName();
     }
     
-    public class RecordHandler implements ProxyHandler<Record> {
-        public int count = 0;
+    public class MethodBasedHandler {
+        public boolean handle(int id, String name) {
+            return true;
+        }
+    }
+    
+    public class ProxyBasedHandler implements ProxyHandler<Record> {
         @Override public boolean handle(Record cursor) {
             int id = cursor.getId();
             String name = cursor.getName();
-            count += 1;
+            return id > -1 && name.length() > 0;
+        }
+    }
+    
+    public class EnumBasedHandler implements EnumIndexedCursorHandler<Fields> {
+        @Override
+        public boolean handle(EnumIndexedCursor<Fields> cursor) {
+            int id = cursor.get(Fields.id);
+            String name = cursor.get(Fields.name);
             return id > -1 && name.length() > 0;
         }
     }
     
     @Test public void
-    passes_retrieved_record_fields_to_handler_method() throws Exception {
-        Handler handler = new Handler();
+    passes_retrieved_records_to_handler_method() throws Exception {
+        MethodBasedHandler handler = new MethodBasedHandler();
         CursorHandlingTraverser<Fields> traverser = getMethodDispatchingCursorHandler(handler);
         
         Date before = new Date();
         
-        executeTestQuery(traverser, Fields.class);
+        assertThat(executeTestQuery(traverser, Fields.class), equalTo(true));
         
         Date after = new Date();
         System.out.println(String.format("Traversed 100000 records in %s milliseconds using reflection", after.getTime() - before.getTime()));
-        
-        MatcherAssert.assertThat(handler.count, Matchers.equalTo(100000));
     }
     
     @Test public void
-    passes_retrieved_record_fields_to_proxy_handler() throws Exception {
-        RecordHandler handler = new RecordHandler();
+    passes_retrieved_records_to_proxy_handler() throws Exception {
+        ProxyBasedHandler handler = new ProxyBasedHandler();
         Date before = new Date();
         ProxyHandlingTraverser<Record, Fields> traverser = new ProxyHandlingTraverser<Record, Fields>(Record.class, Fields.class, handler);
         
-        executeTestQuery(traverser, Fields.class);
+        assertThat(executeTestQuery(traverser, Fields.class), equalTo(true));
         
         Date after = new Date();
         System.out.println(String.format("Traversed 100000 records in %s milliseconds using proxy", after.getTime() - before.getTime()));
-        MatcherAssert.assertThat(handler.count, Matchers.equalTo(100000));
     }
     
-    private CursorHandlingTraverser<Fields> getMethodDispatchingCursorHandler(Handler handler) throws NoSuchMethodException {
-        Method method = Handler.class.getMethod("handle", Integer.TYPE, String.class);
-        MethodDispatcher<Handler, Fields> factory = MethodDispatcherFactory.dispatching(Handler.class, method, Fields.class, Fields.id, Fields.name);
+    @Test public void
+    passes_retrieved_records_to_anonymous_inner_class_handler() throws Exception {
+        EnumBasedHandler handler = new EnumBasedHandler();
+        Date before = new Date();
+        
+        assertThat(executeTestQuery(new CursorHandlingTraverser<Fields>(handler), Fields.class), equalTo(true));
+        
+        Date after = new Date();
+        System.out.println(String.format("Traversed 100000 records in %s milliseconds using anonymous inner class", after.getTime() - before.getTime()));
+    }
+    
+    private CursorHandlingTraverser<Fields> getMethodDispatchingCursorHandler(MethodBasedHandler handler) throws NoSuchMethodException {
+        Method method = MethodBasedHandler.class.getMethod("handle", Integer.TYPE, String.class);
+        MethodDispatcher<MethodBasedHandler, Fields> factory = MethodDispatcherFactory.dispatching(MethodBasedHandler.class, method, Fields.class, Fields.id, Fields.name);
         EnumIndexedCursorHandler<Fields> cursorHandler = factory.to(handler);
         CursorHandlingTraverser<Fields> traverser = new CursorHandlingTraverser<Fields>(cursorHandler);
         return traverser;
