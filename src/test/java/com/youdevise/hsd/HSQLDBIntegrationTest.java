@@ -62,6 +62,9 @@ public class HSQLDBIntegrationTest {
     
     public class MethodBasedHandler {
         public boolean handle(int id, String name) {
+            if (name.equals("Zalgo")) {
+                throw new RuntimeException("He comes!");
+            }
             return true;
         }
     }
@@ -70,6 +73,9 @@ public class HSQLDBIntegrationTest {
         @Override public boolean handle(Record cursor) {
             int id = cursor.getId();
             String name = cursor.getName();
+            if (name.equals("Zalgo")) {
+                throw new RuntimeException("He comes!");
+            }
             return id > -1 && name.length() > 0;
         }
     }
@@ -79,6 +85,9 @@ public class HSQLDBIntegrationTest {
         public boolean handle(EnumIndexedCursor<Fields> cursor) {
             int id = cursor.get(Fields.id);
             String name = cursor.get(Fields.name);
+            if (name.equals("Zalgo")) {
+                throw new RuntimeException("He comes!");
+            }
             return id > -1 && name.length() > 0;
         }
     }
