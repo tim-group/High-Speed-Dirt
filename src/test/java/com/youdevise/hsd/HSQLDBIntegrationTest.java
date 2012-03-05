@@ -125,7 +125,7 @@ public class HSQLDBIntegrationTest {
         assertThat(executeTestQuery(new CursorHandlingTraverser<Fields>(handler), Fields.class), equalTo(true));
         
         Date after = new Date();
-        System.out.println(String.format("Traversed 1000000 records in %s milliseconds using anonymous inner class", after.getTime() - before.getTime()));
+        System.out.println(String.format("Traversed 1000000 records in %s milliseconds using enum-based handler", after.getTime() - before.getTime()));
     }
 
     
