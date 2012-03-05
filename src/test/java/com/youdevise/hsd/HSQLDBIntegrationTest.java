@@ -88,7 +88,7 @@ public class HSQLDBIntegrationTest {
         assertThat(executeTestQuery(traverser, Fields.class), equalTo(true));
         
         Date after = new Date();
-        System.out.println(String.format("Traversed 100000 records in %s milliseconds using reflection", after.getTime() - before.getTime()));
+        System.out.println(String.format("Traversed 1000000 records in %s milliseconds using reflection", after.getTime() - before.getTime()));
     }
     
     @Test public void
@@ -100,7 +100,7 @@ public class HSQLDBIntegrationTest {
         assertThat(executeTestQuery(traverser, Fields.class), equalTo(true));
         
         Date after = new Date();
-        System.out.println(String.format("Traversed 100000 records in %s milliseconds using proxy", after.getTime() - before.getTime()));
+        System.out.println(String.format("Traversed 1000000 records in %s milliseconds using proxy", after.getTime() - before.getTime()));
     }
     
     @Test public void
@@ -111,7 +111,7 @@ public class HSQLDBIntegrationTest {
         assertThat(executeTestQuery(new CursorHandlingTraverser<Fields>(handler), Fields.class), equalTo(true));
         
         Date after = new Date();
-        System.out.println(String.format("Traversed 100000 records in %s milliseconds using anonymous inner class", after.getTime() - before.getTime()));
+        System.out.println(String.format("Traversed 1000000 records in %s milliseconds using anonymous inner class", after.getTime() - before.getTime()));
     }
     
     private CursorHandlingTraverser<Fields> getMethodDispatchingCursorHandler(MethodBasedHandler handler) throws NoSuchMethodException {
