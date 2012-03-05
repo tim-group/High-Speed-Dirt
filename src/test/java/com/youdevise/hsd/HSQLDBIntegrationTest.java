@@ -10,6 +10,7 @@ import java.util.Date;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -22,12 +23,6 @@ public class HSQLDBIntegrationTest {
     public HSQLDBIntegrationTest() throws SQLException {
         DriverManager.registerDriver(new org.hsqldb.jdbcDriver());
         connection = DriverManager.getConnection("jdbc:hsqldb:mem:mymemdb", "SA", "");
-    }
-    
-    public static class Strings {
-        public static String concat(String...strings) {
-            return Joiner.on("\n").join(strings);
-        }
     }
     
     @Before public void
@@ -44,13 +39,9 @@ public class HSQLDBIntegrationTest {
         }
     }
     
-    private void executeStatement(String...sql) throws SQLException {
-        Statement statement = connection.createStatement();
-        try {
-            statement.execute(Joiner.on("\n").join(sql));
-        } finally {
-            statement.close();
-        }
+    @After public void
+    drop_table() throws SQLException {
+        executeStatement("DROP TABLE test;");
     }
     
     public enum Fields {
@@ -66,25 +57,64 @@ public class HSQLDBIntegrationTest {
         }
     }
     
+    public interface Record {
+        int getId();
+        String getName();
+    }
+    
+    public class RecordHandler implements ProxyHandler<Record> {
+        public int count = 0;
+        @Override public boolean handle(Record cursor) {
+            int id = cursor.getId();
+            String name = cursor.getName();
+            count += 1;
+            return id > -1 && name.length() > 0;
+        }
+    }
+    
     @Test public void
-    passes_retrieved_record_fields_to_handler() throws Exception {
+    passes_retrieved_record_fields_to_handler_method() throws Exception {
         Handler handler = new Handler();
+        CursorHandlingTraverser<Fields> traverser = getMethodDispatchingCursorHandler(handler);
+        
         Date before = new Date();
         
-        executeQuery(handler);
+        executeTestQuery(traverser, Fields.class);
         
         Date after = new Date();
-        System.out.println(String.format("Traversed 100000 records in %s milliseconds", after.getTime() - before.getTime()));
+        System.out.println(String.format("Traversed 100000 records in %s milliseconds using reflection", after.getTime() - before.getTime()));
         
         MatcherAssert.assertThat(handler.count, Matchers.equalTo(100000));
     }
-
-    private void executeQuery(Handler handler) throws SQLException, NoSuchMethodException {
+    
+    @Test public void
+    passes_retrieved_record_fields_to_proxy_handler() throws Exception {
+        RecordHandler handler = new RecordHandler();
+        Date before = new Date();
+        ProxyHandlingTraverser<Record, Fields> traverser = new ProxyHandlingTraverser<Record, Fields>(Record.class, Fields.class, handler);
+        
+        executeTestQuery(traverser, Fields.class);
+        
+        Date after = new Date();
+        System.out.println(String.format("Traversed 100000 records in %s milliseconds using proxy", after.getTime() - before.getTime()));
+        MatcherAssert.assertThat(handler.count, Matchers.equalTo(100000));
+    }
+    
+    private CursorHandlingTraverser<Fields> getMethodDispatchingCursorHandler(Handler handler) throws NoSuchMethodException {
+        Method method = Handler.class.getMethod("handle", Integer.TYPE, String.class);
+        MethodDispatcher<Handler, Fields> factory = MethodDispatcherFactory.dispatching(Handler.class, method, Fields.class, Fields.id, Fields.name);
+        EnumIndexedCursorHandler<Fields> cursorHandler = factory.to(handler);
+        CursorHandlingTraverser<Fields> traverser = new CursorHandlingTraverser<Fields>(cursorHandler);
+        return traverser;
+    }
+    
+    private <E extends Enum<E>> boolean executeTestQuery(EnumIndexedCursorTraverser<E> traverser, Class<E> enumClass) throws SQLException, NoSuchMethodException {
         Statement statement = connection.createStatement();
         try {
             ResultSet resultSet = statement.executeQuery("SELECT id, name FROM test");
             try {
-                traverseResults(resultSet, handler);
+                EnumIndexedCursor<E> cursor = ResultSetAdapter.adapting(resultSet, enumClass);
+                return traverser.traverse(cursor);
             } finally {
                 resultSet.close();
             }
@@ -92,14 +122,13 @@ public class HSQLDBIntegrationTest {
             statement.close();
         }
     }
-
-    private void traverseResults(ResultSet resultSet, Handler handler) throws NoSuchMethodException {
-        EnumIndexedCursor<Fields> cursor = ResultSetAdapter.adapting(resultSet, Fields.class);
-        Method method = Handler.class.getMethod("handle", Integer.TYPE, String.class);
-        MethodDispatcher<Handler, Fields> factory = MethodDispatcherFactory.dispatching(Handler.class, method, Fields.class, Fields.id, Fields.name);
-        EnumIndexedCursorHandler<Fields> cursorHandler = factory.to(handler);
-        while (cursor.next()) {
-            cursorHandler.handle(cursor);
+    
+    private void executeStatement(String...sql) throws SQLException {
+        Statement statement = connection.createStatement();
+        try {
+            statement.execute(Joiner.on("\n").join(sql));
+        } finally {
+            statement.close();
         }
     }
 }
