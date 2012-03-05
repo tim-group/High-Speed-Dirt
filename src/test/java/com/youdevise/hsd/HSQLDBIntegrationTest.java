@@ -8,6 +8,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
 
+import org.hibernate.ScrollMode;
+import org.hibernate.ScrollableResults;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.AnnotationConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -113,6 +118,36 @@ public class HSQLDBIntegrationTest {
         Date after = new Date();
         System.out.println(String.format("Traversed 1000000 records in %s milliseconds using anonymous inner class", after.getTime() - before.getTime()));
     }
+
+    
+    @Test public void
+    hibernate_is_slow() {
+        AnnotationConfiguration cfg = new AnnotationConfiguration();
+        cfg.addPackage("com.youdevise.hsd")
+           .addAnnotatedClass(MyPersistable.class)
+           .setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect")
+           .setProperty("hibernate.jdbc.use_scrollable_resultset", "true");
+        SessionFactory factory = cfg.buildSessionFactory();
+        Session session = factory.openSession(connection);
+        
+        ScrollableResults results = session.createQuery("SELECT p FROM MyPersistable p")
+                                           .setReadOnly(true)
+                                           .setCacheable(false)
+                                           .scroll(ScrollMode.FORWARD_ONLY);
+        
+        Date before = new Date();
+        while (results.next()) {
+            MyPersistable persistable = (MyPersistable) results.get()[0];
+            if (persistable.getName().equals("Zalgo")) {
+                throw new RuntimeException("He comes!");
+            }
+        }
+        Date after = new Date();
+        System.out.println(String.format("Traversed 1000000 records in %s milliseconds using Hibernate", after.getTime() - before.getTime()));
+        
+        results.close();
+        session.close();
+    }
     
     private CursorHandlingTraverser<Fields> getMethodDispatchingCursorHandler(MethodBasedHandler handler) throws NoSuchMethodException {
         Method method = MethodBasedHandler.class.getMethod("handle", Integer.TYPE, String.class);
@@ -123,7 +158,7 @@ public class HSQLDBIntegrationTest {
     }
     
     private <E extends Enum<E>> boolean executeTestQuery(EnumIndexedCursorTraverser<E> traverser, Class<E> enumClass) throws SQLException, NoSuchMethodException {
-        Statement statement = connection.createStatement();
+        Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         try {
             ResultSet resultSet = statement.executeQuery("SELECT id, name FROM test");
             try {
