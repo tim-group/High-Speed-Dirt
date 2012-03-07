@@ -13,6 +13,7 @@ import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.AnnotationConfiguration;
+import org.hibernate.jdbc.Work;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -131,13 +132,7 @@ public class HSQLDBIntegrationTest {
     
     @Test public void
     hibernate_is_slow() {
-        AnnotationConfiguration cfg = new AnnotationConfiguration();
-        cfg.addPackage("com.youdevise.hsd")
-           .addAnnotatedClass(MyPersistable.class)
-           .setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect")
-           .setProperty("hibernate.jdbc.use_scrollable_resultset", "true");
-        SessionFactory factory = cfg.buildSessionFactory();
-        Session session = factory.openSession(connection);
+        Session session = createHibernateSession();
         
         ScrollableResults results = session.createQuery("SELECT p FROM MyPersistable p")
                                            .setReadOnly(true)
@@ -157,6 +152,37 @@ public class HSQLDBIntegrationTest {
         results.close();
         session.close();
     }
+
+    private Session createHibernateSession() {
+        AnnotationConfiguration cfg = new AnnotationConfiguration();
+        cfg.addPackage("com.youdevise.hsd")
+           .addAnnotatedClass(MyPersistable.class)
+           .setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect")
+           .setProperty("hibernate.jdbc.use_scrollable_resultset", "true");
+        SessionFactory factory = cfg.buildSessionFactory();
+        Session session = factory.openSession(connection);
+        return session;
+    }
+    
+    @Test public void
+    traverser_can_be_used_with_hibernate() {
+        Session session = createHibernateSession();
+        final EnumBasedHandler handler = new EnumBasedHandler();
+        final CursorHandlingTraverser<Fields> traverser = new CursorHandlingTraverser<Fields>(handler);
+        
+        Date before = new Date();
+        session.doWork(new Work() {
+            @Override
+            public void execute(Connection hibernateConnection) throws SQLException {
+                executeTestQuery(traverser, Fields.class, hibernateConnection);
+            }
+        });
+        Date after = new Date();
+        
+        System.out.println(String.format("Traversed 1000000 records in %s milliseconds using enum-based handler in a Work object inside Hibernate", after.getTime() - before.getTime()));
+        
+        session.close();
+    }
     
     private CursorHandlingTraverser<Fields> getMethodDispatchingCursorHandler(MethodBasedHandler handler) throws NoSuchMethodException {
         Method method = MethodBasedHandler.class.getMethod("handle", Integer.TYPE, String.class);
@@ -166,8 +192,12 @@ public class HSQLDBIntegrationTest {
         return traverser;
     }
     
-    private <E extends Enum<E>> boolean executeTestQuery(EnumIndexedCursorTraverser<E> traverser, Class<E> enumClass) throws SQLException, NoSuchMethodException {
-        Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+    private <E extends Enum<E>> boolean executeTestQuery(EnumIndexedCursorTraverser<E> traverser, Class<E> enumClass) throws SQLException {
+        return executeTestQuery(traverser, enumClass, connection);
+    }
+    
+    private <E extends Enum<E>> boolean executeTestQuery(EnumIndexedCursorTraverser<E> traverser, Class<E> enumClass, Connection conn) throws SQLException {
+        Statement statement = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         try {
             ResultSet resultSet = statement.executeQuery("SELECT id, name FROM test");
             try {
