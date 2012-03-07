@@ -152,6 +152,39 @@ public class HSQLDBIntegrationTest {
         results.close();
         session.close();
     }
+    
+    public static class HibernateRecord {
+        public final int id;
+        public final String name;
+        public HibernateRecord(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+    }
+    
+    @Test public void
+    hibernate_with_constructor_calls_is_less_slow() {
+        Session session = createHibernateSession();
+        
+        ScrollableResults results = session.createQuery(String.format("SELECT new %s(p.id, p.name) FROM MyPersistable p",
+                                                                      HibernateRecord.class.getName()))
+                                           .setReadOnly(true)
+                                           .setCacheable(false)
+                                           .scroll(ScrollMode.FORWARD_ONLY);
+        
+        Date before = new Date();
+        while (results.next()) {
+            HibernateRecord persistable = (HibernateRecord) results.get()[0];
+            if (persistable.name.equals("Zalgo")) {
+                throw new RuntimeException("He comes!");
+            }
+        }
+        Date after = new Date();
+        System.out.println(String.format("Traversed 1000000 records in %s milliseconds using Hibernate with constructor method", after.getTime() - before.getTime()));
+        
+        results.close();
+        session.close();
+    }
 
     private Session createHibernateSession() {
         AnnotationConfiguration cfg = new AnnotationConfiguration();
