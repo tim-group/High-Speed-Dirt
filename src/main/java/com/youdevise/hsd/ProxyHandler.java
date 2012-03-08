@@ -1,5 +1,3 @@
 package com.youdevise.hsd;
 
-public interface ProxyHandler<T> {
-    boolean handle(T proxy);
-}
+public interface ProxyHandler<T> extends InterruptableHandler<T> { }

@@ -25,7 +25,7 @@ public class MethodDispatcherFactory {
         public EnumIndexedCursorHandler<E> to(final T target) {
             return new EnumIndexedCursorHandler<E>() {
                 @Override
-                public boolean handle(EnumIndexedCursor<E> handler) {
+                public Boolean handle(EnumIndexedCursor<E> handler) {
                     Object[] params = new Object[fields.length];
                     for (int i=0; i<fields.length; i++) {
                         params[i] = handler.get(fields[i]);
