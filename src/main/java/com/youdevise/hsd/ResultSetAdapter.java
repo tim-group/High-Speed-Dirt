@@ -68,12 +68,47 @@ public class ResultSetAdapter<E extends Enum<E>> implements EnumIndexedCursor<E>
     }
 
     @Override
-    public String getString(E key) {
+    public short getShort(E key) {
         try {
-            return resultSet.getString(indices.get(key));
+            return resultSet.getShort(indices.get(key));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
-    
+
+    @Override
+    public long getLong(E key) {
+        try {
+            return resultSet.getLong(indices.get(key));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public float getFloat(E key) {
+        try {
+            return resultSet.getFloat(indices.get(key));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public double getDouble(E key) {
+        try {
+            return resultSet.getDouble(indices.get(key));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public byte getByte(E key) {
+        try {
+            return resultSet.getByte(indices.get(key));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

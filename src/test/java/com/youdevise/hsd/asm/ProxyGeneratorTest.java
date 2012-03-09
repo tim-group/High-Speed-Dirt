@@ -20,7 +20,7 @@ public class ProxyGeneratorTest {
     
     public static interface Record {
         String getFoo();
-        int[] getBar();
+        int getBar();
         Date getBaz();
     }
     
@@ -53,8 +53,28 @@ public class ProxyGeneratorTest {
         }
 
         @Override
-        public String getString(E key) {
-            return this.<String>get(key);
+        public short getShort(E key) {
+            return this.<Short>get(key);
+        }
+
+        @Override
+        public long getLong(E key) {
+            return this.<Long>get(key);
+        }
+
+        @Override
+        public float getFloat(E key) {
+            return this.<Float>get(key);
+        }
+
+        @Override
+        public double getDouble(E key) {
+            return this.<Double>get(key);
+        }
+
+        @Override
+        public byte getByte(E key) {
+            return this.<Byte>get(key);
         }
         
     }
@@ -62,17 +82,16 @@ public class ProxyGeneratorTest {
     @Test public void
     generates_proxy_mapping_getters_to_enum_map() {
         Date theDate = new Date();
-        int[] ints = new int[] { 1, 2, 3 };
         EnumMap<Fields, Object> values = new EnumMap<Fields, Object>(Fields.class);
         values.put(Fields.foo, "Foo");
-        values.put(Fields.bar, ints);
+        values.put(Fields.bar, 23);
         values.put(Fields.baz, theDate);
         
         ProxyGenerator<Fields, Record> generator = ProxyGenerator.mapping(Fields.class).to(Record.class);
         Record record = generator.generateView(new TestCursorImpl<Fields>(values));
         
         assertThat(record.getFoo(), equalTo("Foo"));
-        assertThat(record.getBar(), equalTo(ints));
+        assertThat(record.getBar(), equalTo(23));
         assertThat(record.getBaz(), equalTo(theDate));
         
     }

@@ -104,7 +104,7 @@ public class HSQLDBIntegrationTest {
         @Override
         public Boolean handle(EnumIndexedCursor<Fields> cursor) {
             int id = cursor.getInt(Fields.id);
-            String name = cursor.getString(Fields.name);
+            String name = cursor.<String>get(Fields.name);
             if (name.equals("Zalgo")) {
                 throw new RuntimeException("He comes!");
             }
@@ -112,29 +112,42 @@ public class HSQLDBIntegrationTest {
         }
     }
     
+    private static final int TOTAL_RUNS = 10;
+    
     public void runBenchmark(final String description, Runnable benchmark) {
         long warmupTime = 0;
-        long firstTime = 0;
+        long[] times = new long[TOTAL_RUNS];
         long totalTime = 0;
-        for (int i = 0; i<11; i++) {
+        long fastestTime = 100000L;
+        long slowestTime = 0;
+        for (int i = 0; i<=TOTAL_RUNS; i++) {
             long start = System.nanoTime();
             benchmark.run();
             long end = System.nanoTime();
-            switch(i) {
-                case 0:
-                    warmupTime = end - start;
-                    break;
-                case 1:
-                    firstTime = end - start;
-                default:
-                    totalTime += end - start;
+            long time = (end - start) / 1000000;
+            if (i == 0) {
+                warmupTime = time;
+            } else {
+                totalTime += time;
+                if (time < fastestTime) { fastestTime = time; }
+                if (time > slowestTime) { slowestTime = time; }
+                times[i-1] = time;
             }
         }
+        double mean = totalTime / TOTAL_RUNS;
+        double numerator = 0;
+        for (long time : times) {
+            numerator += (time * time)  + (mean * mean) - (2 * mean * time);
+        }
+        double stdDev = Math.sqrt(numerator / TOTAL_RUNS);
         System.out.println(description);
         System.out.println(Strings.repeat("=", description.length()));
-        System.out.println(String.format("Avg over 10 runs: %d ms", totalTime / 10000000));
-        System.out.println(String.format("Warmup: %d ms", warmupTime / 1000000));
-        System.out.println(String.format("First run: %d ms", firstTime / 1000000));
+        System.out.println(String.format("Avg over %d runs: %d ms", TOTAL_RUNS, totalTime / TOTAL_RUNS));
+        System.out.println(String.format("Warmup: %d ms", warmupTime));
+        System.out.println(String.format("First run: %d ms", times[0]));
+        System.out.println(String.format("Slowest: %d ms", slowestTime));
+        System.out.println(String.format("Fastest: %d ms", fastestTime));
+        System.out.println(String.format("Standard deviation: %s", stdDev));
         System.out.println();
     }
     
@@ -244,31 +257,6 @@ public class HSQLDBIntegrationTest {
             }
         });
 
-        session.close();
-    }
-    
-    @SuppressWarnings("unchecked")
-    @Test public void
-    hibernate_with_select_map_is_not_too_shabby() {
-        final Session session = createHibernateSession();
-        
-        runBenchmark("Hibernate with map selector", new Runnable() {
-            @Override public void run() {
-                final ScrollableResults results = session.createQuery(String.format("SELECT new map(p.id, p.name as name) FROM MyPersistable p",
-                                                                                    HibernateRecord.class.getName()))
-                                                                                    .setReadOnly(true)
-                                                                                    .setCacheable(false)
-                                                                                    .scroll(ScrollMode.FORWARD_ONLY);
-                while (results.next()) {
-                    Map<String, Object> persistable = (Map<String, Object>) results.get()[0];
-                    if (persistable.get("name").equals("Zalgo")) {
-                        throw new RuntimeException("He comes!");
-                    }
-                }
-                results.close();
-            }
-        });
-        
         session.close();
     }
 
