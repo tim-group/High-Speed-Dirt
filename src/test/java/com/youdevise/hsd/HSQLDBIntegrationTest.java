@@ -27,14 +27,15 @@ public class HSQLDBIntegrationTest {
     private static final Query TEST_QUERY = new Query("SELECT id, name FROM test", new Object[] {});
     
     @BeforeClass public static void
-    create_and_populate_table() throws SQLException {
+    create_and_populate_table() throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         DriverManager.registerDriver(new org.hsqldb.jdbcDriver());
         connection = DriverManager.getConnection("jdbc:hsqldb:mem:mymemdb", "SA", "");
+        
         executeStatement(
                 "CREATE TABLE test (",
-                "       id INT IDENTITY,",
-                "       name VARCHAR(255),",
-                "       primary key(id));");
+                "       ID INT IDENTITY,",
+                "       NAME VARCHAR(255),",
+                "       primary key(ID));");
 
         for (int i=0; i<1000000; i++) {
             executeStatement("INSERT INTO test (name) values ('" + Integer.toString(i) + "');");
@@ -60,8 +61,8 @@ public class HSQLDBIntegrationTest {
     private final class ResultSetBasedHandler implements ResultSetHandler {
         @Override
         public Boolean handle(ResultSet arg) throws SQLException {
-            int id = (Integer) arg.getObject(1);
-            String name = (String) arg.getObject(2);
+            int id = arg.getInt(1);
+            String name = arg.getString(2);
             if (name.equals("Zalgo")) {
                 throw new RuntimeException("He comes!");
             }
@@ -102,8 +103,8 @@ public class HSQLDBIntegrationTest {
     public class EnumBasedHandler implements EnumIndexedCursorHandler<Fields> {
         @Override
         public Boolean handle(EnumIndexedCursor<Fields> cursor) {
-            int id = cursor.<Integer>get(Fields.id);
-            String name = cursor.<String>get(Fields.name);
+            int id = cursor.getInt(Fields.id);
+            String name = cursor.getString(Fields.name);
             if (name.equals("Zalgo")) {
                 throw new RuntimeException("He comes!");
             }
@@ -115,7 +116,7 @@ public class HSQLDBIntegrationTest {
         long warmupTime = 0;
         long firstTime = 0;
         long totalTime = 0;
-        for (int i = 0; i<101; i++) {
+        for (int i = 0; i<11; i++) {
             long start = System.nanoTime();
             benchmark.run();
             long end = System.nanoTime();
@@ -131,7 +132,7 @@ public class HSQLDBIntegrationTest {
         }
         System.out.println(description);
         System.out.println(Strings.repeat("=", description.length()));
-        System.out.println(String.format("Avg over 100 runs: %d ms", totalTime / 100000000));
+        System.out.println(String.format("Avg over 10 runs: %d ms", totalTime / 10000000));
         System.out.println(String.format("Warmup: %d ms", warmupTime / 1000000));
         System.out.println(String.format("First run: %d ms", firstTime / 1000000));
         System.out.println();

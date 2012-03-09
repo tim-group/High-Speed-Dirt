@@ -31,13 +31,15 @@ public class ProxyGenerator<E extends Enum<E>, T> {
 
     private static final String T_CURSOR = "com/youdevise/hsd/EnumIndexedCursor";
     private static final String T_LONG = "java/lang/Long";
-    private static final String T_INTEGER = "java/lang/Integer";
     private static final String T_SHORT = "java/lang/Short";
     private static final String T_CHARACTER = "java/lang/Character";
+    private static final String T_FLOAT = "java/lang/Float";
+    private static final String T_DOUBLE = "java/lang/Double";
     private static final String T_BYTE = "java/lang/Byte";
     private static final String T_BOOLEAN = "java/lang/Boolean";
     private static final String T_OBJECT = "java/lang/Object";
     private static final String L_OBJECT = "Ljava/lang/Object;";
+    private static final String L_STRING = "Ljava/lang/String;";
     private static final String L_ENUM = "Ljava/lang/Enum;";
     private static final String L_CURSOR = "Lcom/youdevise/hsd/EnumIndexedCursor;";
 
@@ -69,8 +71,6 @@ public class ProxyGenerator<E extends Enum<E>, T> {
             return (T) proxyImplementationClass.getConstructor(EnumIndexedCursor.class).newInstance(cursor);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException(e);
-        } catch (SecurityException e) {
-            throw new RuntimeException(e);
         } catch (InstantiationException e) {
             throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
@@ -84,7 +84,7 @@ public class ProxyGenerator<E extends Enum<E>, T> {
 
     @SuppressWarnings("unchecked")
     private Class<? extends T> generateProxyImplementationClass() {
-        ClassWriter cw = new ClassWriter(false);
+        ClassWriter cw = new ClassWriter(0);
         String implName = implName(proxyClass);
         cw.visit(V1_6,
                  ACC_PUBLIC + ACC_SUPER,
@@ -137,61 +137,70 @@ public class ProxyGenerator<E extends Enum<E>, T> {
         mv.visitVarInsn(ALOAD, 0);
         mv.visitFieldInsn(GETFIELD, implName, "cursor", L_CURSOR);
         mv.visitFieldInsn(GETSTATIC, Type.getInternalName(enumClass), field.name(), Type.getDescriptor(enumClass));
-        mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
-        unboxReturnValue(mv, Type.getReturnType(method));
+        getColumnValue(mv, Type.getReturnType(method));
         mv.visitMaxs(2, 1);
         mv.visitEnd();
     }
 
-    private void unboxReturnValue(MethodVisitor mv, Type returnType) {
-        String T_FLOAT = "java/lang/Float";
-        String T_DOUBLE = "java/lang/Double";
+    private void getColumnValue(MethodVisitor mv, Type returnType) {
         switch (returnType.getSort()) {
             case Type.BOOLEAN:
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
                 mv.visitTypeInsn(CHECKCAST, T_BOOLEAN);
                 mv.visitMethodInsn(INVOKEVIRTUAL, T_BOOLEAN, "booleanValue", "()Z");
                 mv.visitInsn(IRETURN);
                 break;
             case Type.BYTE:
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
                 mv.visitTypeInsn(CHECKCAST, T_BYTE);
                 mv.visitMethodInsn(INVOKEVIRTUAL, T_BYTE, "byteValue", "()B");
                 mv.visitInsn(IRETURN);
                 break;
             case Type.CHAR:
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
                 mv.visitTypeInsn(CHECKCAST, T_CHARACTER);
                 mv.visitMethodInsn(INVOKEVIRTUAL, T_CHARACTER, "charValue", "()C");
                 mv.visitInsn(IRETURN);
                 break;
             case Type.SHORT:
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
                 mv.visitTypeInsn(CHECKCAST, T_SHORT);
                 mv.visitMethodInsn(INVOKEVIRTUAL, T_SHORT, "shortValue", "()S");
                 mv.visitInsn(IRETURN);
                 break;
             case Type.INT:
-                mv.visitTypeInsn(CHECKCAST, T_INTEGER);
-                mv.visitMethodInsn(INVOKEVIRTUAL, T_INTEGER, "intValue", "()I");
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "getInt", String.format("(%s)%s", L_ENUM, "I"));
                 mv.visitInsn(IRETURN);
                 break;
             case Type.FLOAT:
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
                 mv.visitTypeInsn(CHECKCAST, T_FLOAT);
                 mv.visitMethodInsn(INVOKEVIRTUAL, T_FLOAT, "floatValue", "()F");
                 mv.visitInsn(FRETURN);
                 break;
             case Type.LONG:
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
                 mv.visitTypeInsn(CHECKCAST, T_LONG);
                 mv.visitMethodInsn(INVOKEVIRTUAL, T_LONG, "longValue", "()J");
                 mv.visitInsn(LRETURN);
                 break;
             case Type.DOUBLE:
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
                 mv.visitTypeInsn(CHECKCAST, T_DOUBLE);
                 mv.visitMethodInsn(INVOKEVIRTUAL, T_DOUBLE, "doubleValue", "()D");
                 mv.visitInsn(DRETURN);
                 break;
             case Type.ARRAY:
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
                 mv.visitTypeInsn(CHECKCAST, returnType.getDescriptor());
                 mv.visitInsn(ARETURN);
                 break;
             case Type.OBJECT:
+                if (returnType.equals(String.class)) {
+                    mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "getString", String.format("(%s)%s", L_ENUM, L_STRING));
+                } else {
+                    mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
+                }
                 mv.visitTypeInsn(CHECKCAST, returnType.getInternalName());
                 mv.visitInsn(ARETURN);
                 break;

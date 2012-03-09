@@ -46,6 +46,16 @@ public class ProxyGeneratorTest {
         public boolean next() {
             return false;
         }
+
+        @Override
+        public int getInt(E key) {
+            return this.<Integer>get(key);
+        }
+
+        @Override
+        public String getString(E key) {
+            return this.<String>get(key);
+        }
         
     }
     
