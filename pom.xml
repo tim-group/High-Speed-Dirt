@@ -41,6 +41,11 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+	<groupId>asm</groupId>
+	<artifactId>asm-all</artifactId>
+	<version>2.2</version>
+    </dependency>
+    <dependency>
       <groupId>hsqldb</groupId>
       <artifactId>hsqldb</artifactId>
       <version>1.8.0.10</version>

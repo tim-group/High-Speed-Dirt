@@ -115,7 +115,7 @@ public class HSQLDBIntegrationTest {
         long warmupTime = 0;
         long firstTime = 0;
         long totalTime = 0;
-        for (int i = 0; i<11; i++) {
+        for (int i = 0; i<101; i++) {
             long start = System.nanoTime();
             benchmark.run();
             long end = System.nanoTime();
@@ -131,7 +131,7 @@ public class HSQLDBIntegrationTest {
         }
         System.out.println(description);
         System.out.println(Strings.repeat("=", description.length()));
-        System.out.println(String.format("Avg over 10 runs: %d ms", totalTime / 10000000));
+        System.out.println(String.format("Avg over 100 runs: %d ms", totalTime / 100000000));
         System.out.println(String.format("Warmup: %d ms", warmupTime / 1000000));
         System.out.println(String.format("First run: %d ms", firstTime / 1000000));
         System.out.println();

@@ -2,25 +2,25 @@ package com.youdevise.hsd;
 
 import java.sql.SQLException;
 
+import com.youdevise.hsd.asm.ProxyGenerator;
 
 public class ProxyHandlingTraverser<T, E extends Enum<E>> implements Traverser<EnumIndexedCursor<E>> {
     
     public static <T, E extends Enum<E>> ProxyHandlingTraverser<T, E> proxying(Class<T> proxyClass, Class<E> enumClass, Handler<T, Boolean> handler) {
-        return new ProxyHandlingTraverser<T, E>(proxyClass, enumClass, handler);
+        ProxyGenerator<E, T> proxyGenerator = ProxyGenerator.mapping(enumClass).to(proxyClass);
+        return new ProxyHandlingTraverser<T, E>(proxyGenerator, handler);
     }
     
-    private final Class<E> enumClass;
-    private final Class<T> proxyClass;
+    private final ProxyGenerator<E, T> proxyGenerator;
     private final Handler<T, Boolean> handler;
     
-    private ProxyHandlingTraverser(Class<T> proxyClass, Class<E> enumClass, Handler<T, Boolean> handler) {
-        this.proxyClass = proxyClass;
-        this.enumClass = enumClass;
+    private ProxyHandlingTraverser(ProxyGenerator<E, T> proxyGenerator, Handler<T, Boolean> handler) {
+        this.proxyGenerator = proxyGenerator;
         this.handler = handler;
     }
     
     @Override public boolean traverse(EnumIndexedCursor<E> cursor) throws SQLException {
-        T proxy = EnumIndexedCursorProxy.proxying(cursor, enumClass, proxyClass);
+        T proxy = proxyGenerator.generateView(cursor);
         while (cursor.next()) {
             if (!handler.handle(proxy)) { return false; }
         }
