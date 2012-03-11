@@ -6,7 +6,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Map;
 
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
@@ -19,12 +18,17 @@ import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 
 public class HSQLDBIntegrationTest {
 
     private static Connection connection;
     private static final Query TEST_QUERY = new Query("SELECT id, name FROM test", new Object[] {});
+    
+    private static final BenchmarkRunner runner = new BenchmarkRunner(10);
+
+    private void runBenchmark(final String description, Runnable benchmark) {
+        runner.runBenchmark(description, benchmark);
+    }
     
     @BeforeClass public static void
     create_and_populate_table() throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
@@ -110,45 +114,6 @@ public class HSQLDBIntegrationTest {
             }
             return id > -1 && name.length() > 0;
         }
-    }
-    
-    private static final int TOTAL_RUNS = 10;
-    
-    public void runBenchmark(final String description, Runnable benchmark) {
-        long warmupTime = 0;
-        long[] times = new long[TOTAL_RUNS];
-        long totalTime = 0;
-        long fastestTime = 100000L;
-        long slowestTime = 0;
-        for (int i = 0; i<=TOTAL_RUNS; i++) {
-            long start = System.nanoTime();
-            benchmark.run();
-            long end = System.nanoTime();
-            long time = (end - start) / 1000000;
-            if (i == 0) {
-                warmupTime = time;
-            } else {
-                totalTime += time;
-                if (time < fastestTime) { fastestTime = time; }
-                if (time > slowestTime) { slowestTime = time; }
-                times[i-1] = time;
-            }
-        }
-        double mean = totalTime / TOTAL_RUNS;
-        double numerator = 0;
-        for (long time : times) {
-            numerator += (time * time)  + (mean * mean) - (2 * mean * time);
-        }
-        double stdDev = Math.sqrt(numerator / TOTAL_RUNS);
-        System.out.println(description);
-        System.out.println(Strings.repeat("=", description.length()));
-        System.out.println(String.format("Avg over %d runs: %d ms", TOTAL_RUNS, totalTime / TOTAL_RUNS));
-        System.out.println(String.format("Warmup: %d ms", warmupTime));
-        System.out.println(String.format("First run: %d ms", times[0]));
-        System.out.println(String.format("Slowest: %d ms", slowestTime));
-        System.out.println(String.format("Fastest: %d ms", fastestTime));
-        System.out.println(String.format("Standard deviation: %s", stdDev));
-        System.out.println();
     }
     
     @Test public void

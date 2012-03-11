@@ -1,14 +1,5 @@
 package com.youdevise.hsd.asm;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
-
-import com.youdevise.hsd.EnumIndexedCursor;
-
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_SUPER;
 import static org.objectweb.asm.Opcodes.ALOAD;
@@ -27,15 +18,18 @@ import static org.objectweb.asm.Opcodes.PUTFIELD;
 import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.V1_6;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+
+import com.youdevise.hsd.EnumIndexedCursor;
+
 public class ProxyGenerator<E extends Enum<E>, T> {
 
     private static final String T_CURSOR = "com/youdevise/hsd/EnumIndexedCursor";
-    private static final String T_LONG = "java/lang/Long";
-    private static final String T_SHORT = "java/lang/Short";
-    private static final String T_CHARACTER = "java/lang/Character";
-    private static final String T_FLOAT = "java/lang/Float";
-    private static final String T_DOUBLE = "java/lang/Double";
-    private static final String T_BYTE = "java/lang/Byte";
     private static final String T_BOOLEAN = "java/lang/Boolean";
     private static final String T_OBJECT = "java/lang/Object";
     private static final String L_OBJECT = "Ljava/lang/Object;";
@@ -151,21 +145,15 @@ public class ProxyGenerator<E extends Enum<E>, T> {
                 mv.visitInsn(IRETURN);
                 break;
             case Type.BYTE:
-                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
-                mv.visitTypeInsn(CHECKCAST, T_BYTE);
-                mv.visitMethodInsn(INVOKEVIRTUAL, T_BYTE, "byteValue", "()B");
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "getByte", String.format("(%s)%s", L_ENUM, "B"));
                 mv.visitInsn(IRETURN);
                 break;
             case Type.CHAR:
-                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
-                mv.visitTypeInsn(CHECKCAST, T_CHARACTER);
-                mv.visitMethodInsn(INVOKEVIRTUAL, T_CHARACTER, "charValue", "()C");
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "getInt", String.format("(%s)%s", L_ENUM, "I"));
                 mv.visitInsn(IRETURN);
                 break;
             case Type.SHORT:
-                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
-                mv.visitTypeInsn(CHECKCAST, T_SHORT);
-                mv.visitMethodInsn(INVOKEVIRTUAL, T_SHORT, "shortValue", "()S");
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "getShort", String.format("(%s)%s", L_ENUM, "S"));
                 mv.visitInsn(IRETURN);
                 break;
             case Type.INT:
@@ -173,21 +161,15 @@ public class ProxyGenerator<E extends Enum<E>, T> {
                 mv.visitInsn(IRETURN);
                 break;
             case Type.FLOAT:
-                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
-                mv.visitTypeInsn(CHECKCAST, T_FLOAT);
-                mv.visitMethodInsn(INVOKEVIRTUAL, T_FLOAT, "floatValue", "()F");
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "getFloat", String.format("(%s)%s", L_ENUM, "F"));
                 mv.visitInsn(FRETURN);
                 break;
             case Type.LONG:
-                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
-                mv.visitTypeInsn(CHECKCAST, T_LONG);
-                mv.visitMethodInsn(INVOKEVIRTUAL, T_LONG, "longValue", "()J");
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "getLong", String.format("(%s)%s", L_ENUM, "J"));
                 mv.visitInsn(LRETURN);
                 break;
             case Type.DOUBLE:
-                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "get", String.format("(%s)%s", L_ENUM, L_OBJECT));
-                mv.visitTypeInsn(CHECKCAST, T_DOUBLE);
-                mv.visitMethodInsn(INVOKEVIRTUAL, T_DOUBLE, "doubleValue", "()D");
+                mv.visitMethodInsn(INVOKEINTERFACE, T_CURSOR, "getDouble", String.format("(%s)%s", L_ENUM, "D"));
                 mv.visitInsn(DRETURN);
                 break;
             case Type.ARRAY:
