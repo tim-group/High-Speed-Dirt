@@ -145,11 +145,11 @@ public class HSQLDBIntegrationTest {
     
     @Test public void
     passes_retrieved_records_to_result_set_handler() throws Exception {
-        final ResultSetHandler resultSetHandler = new ResultSetBasedHandler();
+        final Traverser<ResultSet> traverser = Traversers.adapt(new ResultSetBasedHandler());
         runBenchmark("ResultSet handler", new Runnable() {
             @Override public void run() {
                 try {
-                    TEST_QUERY.execute(connection).traverse(resultSetHandler);
+                    TEST_QUERY.execute(connection, traverser);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -230,12 +230,12 @@ public class HSQLDBIntegrationTest {
     @Test public void
     traverser_can_be_used_with_hibernate() {
         final Session session = createHibernateSession();
-        final EnumBasedHandler handler = new EnumBasedHandler();
-        final EnumIndexedCursorTraverser<Fields> traverser = EnumIndexedCursorTraverser.forHandler(handler);
+        EnumBasedHandler handler = new EnumBasedHandler();
+        final Traverser<ResultSet> traverser = Traversers.adapt(Fields.class, handler);
         
         runBenchmark("Enum-based handler in a Work object inside Hibernate", new Runnable() {
             @Override public void run() {
-                session.doWork(QueryWork.executing(TEST_QUERY, Fields.class, traverser));
+                session.doWork(QueryWork.executing(TEST_QUERY, traverser));
             }
         });
 
@@ -256,7 +256,7 @@ public class HSQLDBIntegrationTest {
     
     private <E extends Enum<E>> boolean executeTestQuery(Traverser<EnumIndexedCursor<E>> traverser, Class<E> enumClass, Connection conn) {
         try {
-            return TEST_QUERY.execute(conn).traverse(enumClass, traverser);
+            return TEST_QUERY.execute(conn, Traversers.adapt(enumClass, traverser));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

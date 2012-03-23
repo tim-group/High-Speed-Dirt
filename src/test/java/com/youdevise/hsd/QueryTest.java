@@ -53,35 +53,7 @@ public class QueryTest {
             oneOf(statement).close();
         }});
         
-        boolean result = query.execute(connection).traverse(handler);
-        context.assertIsSatisfied();
-        assertThat(result, is(true));
-    }
-    
-    @Test public void
-    insert_statement_returns_generated_keys() throws SQLException {
-        final String sql = "INSERT INTO xyzzy (foo, bar) VALUES (?, ?)";
-        final Object[] parameters = new Object[] { "foo", 12 };
-        Query query = new Query(sql, parameters);
-        
-        context.checking(new Expectations() {{
-            oneOf(connection).prepareStatement(sql); will(returnValue(statement));
-            oneOf(statement).setObject(1, "foo");
-            oneOf(statement).setObject(2, 12);
-            
-            allowing(statement).execute(); will(returnValue(false));
-            allowing(statement).getGeneratedKeys(); will(returnValue(resultSet));
-
-            final Sequence recordIteration = context.sequence("recordIteration");
-            oneOf(resultSet).next(); will(returnValue(true)); inSequence(recordIteration);
-            oneOf(handler).handle(resultSet); will(returnValue(true)); inSequence(recordIteration);
-            oneOf(resultSet).next(); will(returnValue(false)); inSequence(recordIteration);
-            
-            oneOf(resultSet).close();
-            oneOf(statement).close();
-        }});
-        
-        boolean result = query.execute(connection).traverse(handler);
+        boolean result = query.execute(connection, Traversers.adapt(handler));
         context.assertIsSatisfied();
         assertThat(result, is(true));
     }
