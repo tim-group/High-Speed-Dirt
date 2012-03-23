@@ -18,11 +18,24 @@ import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
 
 import com.google.common.base.Joiner;
+import com.youdevise.hsd.BatchInsertTest.BatchInsert;
 
 public class HSQLDBIntegrationTest {
 
     private static Connection connection;
-    private static final Query TEST_QUERY = new Query("SELECT id, name FROM test", new Object[] {});
+    public static interface TestDb {
+        
+        @Sql("SELECT id, name FROM test")
+        public Query selectIdAndName();
+        
+        @Sql({ "INSERT INTO test",
+               "(name)",
+               "VALUES",
+               "(?)" })
+        public BatchInsert insertNames();
+    }
+    
+    private static final TestDb testDb = MagicQuery.proxying(TestDb.class);
     
     private static final BenchmarkRunner runner = new BenchmarkRunner(10);
 
@@ -41,9 +54,12 @@ public class HSQLDBIntegrationTest {
                 "       NAME VARCHAR(255),",
                 "       primary key(ID));");
 
+        BatchInsert insert = testDb.insertNames();
         for (int i=0; i<1000000; i++) {
-            executeStatement("INSERT INTO test (name) values ('" + Integer.toString(i) + "');");
+            insert.addValues(Integer.toString(i));
         }
+        int[] ids = insert.execute(connection);
+        assert(ids.length == 1000000);
     }
     
     @AfterClass public static void
@@ -67,9 +83,6 @@ public class HSQLDBIntegrationTest {
         public Boolean handle(ResultSet arg) throws SQLException {
             int id = arg.getInt(1);
             String name = arg.getString(2);
-            if (name.equals("Zalgo")) {
-                throw new RuntimeException("He comes!");
-            }
             return id > -1 && name.length() > 0;
         }
     }
@@ -149,7 +162,7 @@ public class HSQLDBIntegrationTest {
         runBenchmark("ResultSet handler", new Runnable() {
             @Override public void run() {
                 try {
-                    TEST_QUERY.execute(connection, traverser);
+                    testDb.selectIdAndName().execute(connection, traverser);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -235,7 +248,7 @@ public class HSQLDBIntegrationTest {
         
         runBenchmark("Enum-based handler in a Work object inside Hibernate", new Runnable() {
             @Override public void run() {
-                session.doWork(QueryWork.executing(TEST_QUERY, traverser));
+                session.doWork(QueryWork.executing(testDb.selectIdAndName(), traverser));
             }
         });
 
@@ -256,7 +269,7 @@ public class HSQLDBIntegrationTest {
     
     private <E extends Enum<E>> boolean executeTestQuery(Traverser<EnumIndexedCursor<E>> traverser, Class<E> enumClass, Connection conn) {
         try {
-            return TEST_QUERY.execute(conn, Traversers.adapt(enumClass, traverser));
+            return testDb.selectIdAndName().execute(conn, Traversers.adapt(enumClass, traverser));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

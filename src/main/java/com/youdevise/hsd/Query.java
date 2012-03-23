@@ -35,6 +35,9 @@ public class Query {
     }
     
     private void setParameters(PreparedStatement statement) throws SQLException {
+        if (parameters == null) {
+            return;
+        }
         for (int i = 0; i < parameters.length; i++) {
             statement.setObject(i + 1, parameters[i]);
         }

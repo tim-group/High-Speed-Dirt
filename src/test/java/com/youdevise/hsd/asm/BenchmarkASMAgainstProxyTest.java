@@ -82,17 +82,17 @@ public class BenchmarkASMAgainstProxyTest {
 
         @Override
         public long getLong(Fields key) {
-            return (long) index;
+            return index;
         }
 
         @Override
         public float getFloat(Fields key) {
-            return (float) index;
+            return index;
         }
 
         @Override
         public double getDouble(Fields key) {
-            return (double) index;
+            return index;
         }
 
         @Override

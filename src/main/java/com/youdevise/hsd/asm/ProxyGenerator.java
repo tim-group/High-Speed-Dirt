@@ -62,7 +62,7 @@ public class ProxyGenerator<E extends Enum<E>, T> {
 
     public T generateView(EnumIndexedCursor<E> cursor) {
         try {
-            return (T) proxyImplementationClass.getConstructor(EnumIndexedCursor.class).newInstance(cursor);
+            return proxyImplementationClass.getConstructor(EnumIndexedCursor.class).newInstance(cursor);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException(e);
         } catch (InstantiationException e) {
