@@ -31,7 +31,7 @@ public class HSQLDBIntegrationTest {
     }
     
     @BeforeClass public static void
-    create_and_populate_table() throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+    create_and_populate_table() throws SQLException {
         DriverManager.registerDriver(new org.hsqldb.jdbcDriver());
         connection = DriverManager.getConnection("jdbc:hsqldb:mem:mymemdb", "SA", "");
         
@@ -86,10 +86,7 @@ public class HSQLDBIntegrationTest {
     
     public class MethodBasedHandler {
         public boolean handle(int id, String name) {
-            if (name.equals("Zalgo")) {
-                throw new RuntimeException("He comes!");
-            }
-            return true;
+            return id > -1 && name.length() > 0;
         }
     }
     
@@ -97,9 +94,6 @@ public class HSQLDBIntegrationTest {
         @Override public Boolean handle(Record cursor) {
             int id = cursor.getId();
             String name = cursor.getName();
-            if (name.equals("Zalgo")) {
-                throw new RuntimeException("He comes!");
-            }
             return id > -1 && name.length() > 0;
         }
     }
@@ -109,9 +103,6 @@ public class HSQLDBIntegrationTest {
         public Boolean handle(EnumIndexedCursor<Fields> cursor) {
             int id = cursor.getInt(Fields.id);
             String name = cursor.<String>get(Fields.name);
-            if (name.equals("Zalgo")) {
-                throw new RuntimeException("He comes!");
-            }
             return id > -1 && name.length() > 0;
         }
     }
@@ -180,8 +171,8 @@ public class HSQLDBIntegrationTest {
 
                 while (results.next()) {
                     MyPersistable persistable = (MyPersistable) results.get()[0];
-                    if (persistable.getName().equals("Zalgo")) {
-                        throw new RuntimeException("He comes!");
+                    if (!(persistable.getId() > -1 && persistable.getName().length() > 0)) {
+                        break;
                     }
                 }
                 results.close();
@@ -214,8 +205,8 @@ public class HSQLDBIntegrationTest {
                 
                 while (results.next()) {
                     HibernateRecord persistable = (HibernateRecord) results.get()[0];
-                    if (persistable.name.equals("Zalgo")) {
-                        throw new RuntimeException("He comes!");
+                    if (!(persistable.id > -1 && persistable.name.length() > 0)) {
+                        break;
                     }
                 }
                 results.close();
@@ -265,7 +256,7 @@ public class HSQLDBIntegrationTest {
     
     private <E extends Enum<E>> boolean executeTestQuery(Traverser<EnumIndexedCursor<E>> traverser, Class<E> enumClass, Connection conn) {
         try {
-            return TEST_QUERY.execute(connection).traverse(enumClass, traverser);
+            return TEST_QUERY.execute(conn).traverse(enumClass, traverser);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
