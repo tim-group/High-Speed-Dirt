@@ -6,9 +6,7 @@ import java.lang.reflect.Method;
 public class MethodDispatcherFactory {
 
     public static <T, E extends Enum<E>> MethodDispatcher<T, E> dispatching(
-            Class<T> targetClass,
             final Method method,
-            final Class<E> enumClass,
             final E...fields) {
         return new ProxyMethodDispatcher<T, E>(method, fields);
     }

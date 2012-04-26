@@ -4,11 +4,11 @@ import java.util.Date;
 
 import org.junit.Test;
 
-import com.youdevise.hsd.BatchInsertTest.BatchInsert;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import com.youdevise.hsd.Sql;
 
 public class MagicQueryTest {
 

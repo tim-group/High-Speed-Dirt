@@ -41,7 +41,7 @@ public class MethodDispatcherFactoryTest {
     dispatches_enum_indexed_cursor_to_method() throws Exception {
         final Handler handler = context.mock(Handler.class);
         Method method = Handler.class.getMethod("handle", Date.class, Integer.TYPE, String.class);
-        MethodDispatcher<Handler, Fields> dispatcher = MethodDispatcherFactory.dispatching(Handler.class, method, Fields.class, Fields.baz, Fields.bar, Fields.foo);
+        MethodDispatcher<Handler, Fields> dispatcher = MethodDispatcherFactory.dispatching(method, Fields.baz, Fields.bar, Fields.foo);
         
         context.checking(new Expectations() {{
             oneOf(handler).handle(theDate, 21, "A string"); will(returnValue(true));

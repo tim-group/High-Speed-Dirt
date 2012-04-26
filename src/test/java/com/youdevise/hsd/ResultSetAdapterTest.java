@@ -11,7 +11,6 @@ import org.jmock.Mockery;
 import org.junit.Before;
 import org.junit.Test;
 
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -52,7 +51,7 @@ public class ResultSetAdapterTest {
     }
     
     @Test public void
-    looks_up_key_indices_in_recordset_metadata_using_column_annotations_where_present() throws SQLException {
+    looks_up_key_indices_in_recordset_metadata_using_column_annotations_where_present() {
         ResultSetAdapter<Record.Fields> adapter = ResultSetAdapter.adapting(resultSet, Record.Fields.class);
 
         assertThat(adapter.<String>get(Record.Fields.foo), equalTo("Hello"));
@@ -61,7 +60,7 @@ public class ResultSetAdapterTest {
     }
     
     @Test public void
-    exports_result_data_as_enum_map() throws SQLException {
+    exports_result_data_as_enum_map() {
         ResultSetAdapter<Record.Fields> adapter = ResultSetAdapter.adapting(resultSet, Record.Fields.class);
         EnumMap<Record.Fields, Object> values = adapter.values();
         

@@ -3,9 +3,9 @@ package com.youdevise.hsd;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import com.youdevise.hsd.Query;
 
 import com.google.common.base.Joiner;
-import com.youdevise.hsd.BatchInsertTest.BatchInsert;
 
 public class MagicQuery implements InvocationHandler {
     

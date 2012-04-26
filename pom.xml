@@ -10,7 +10,7 @@
   <artifactId>hsd</artifactId>
   <packaging>jar</packaging>
   <name>High Speed Dirt</name>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.2</version>
   <description>Very fast database record retrieval</description>
   <url>https://github.com/youdevise/hsd</url>
   <licenses>

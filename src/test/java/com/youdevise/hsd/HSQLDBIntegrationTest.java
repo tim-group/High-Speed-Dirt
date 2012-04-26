@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
 
 import com.google.common.base.Joiner;
-import com.youdevise.hsd.BatchInsertTest.BatchInsert;
 
 public class HSQLDBIntegrationTest {
 
@@ -248,7 +247,7 @@ public class HSQLDBIntegrationTest {
         
         runBenchmark("Enum-based handler in a Work object inside Hibernate", new Runnable() {
             @Override public void run() {
-                session.doWork(QueryWork.executing(testDb.selectIdAndName(), traverser));
+                session.doWork(QueryWork.<Fields>executing(testDb.selectIdAndName(), traverser));
             }
         });
 
@@ -257,7 +256,7 @@ public class HSQLDBIntegrationTest {
     
     private EnumIndexedCursorTraverser<Fields> getMethodDispatchingCursorHandler(MethodBasedHandler handler) throws NoSuchMethodException {
         Method method = MethodBasedHandler.class.getMethod("handle", Integer.TYPE, String.class);
-        MethodDispatcher<MethodBasedHandler, Fields> factory = MethodDispatcherFactory.dispatching(MethodBasedHandler.class, method, Fields.class, Fields.id, Fields.name);
+        MethodDispatcher<MethodBasedHandler, Fields> factory = MethodDispatcherFactory.dispatching(method, Fields.id, Fields.name);
         EnumIndexedCursorHandler<Fields> cursorHandler = factory.to(handler);
         EnumIndexedCursorTraverser<Fields> traverser = EnumIndexedCursorTraverser.forHandler(cursorHandler);
         return traverser;
