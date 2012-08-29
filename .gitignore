@@ -1,0 +1,8 @@
+*~
+*.swp
+/checkouts/
+/bin/
+/lib/
+/classes/
+/native/
+/target/
