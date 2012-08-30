@@ -10,3 +10,8 @@ HSD is *opinionated software*. Among the opinions it promotes are the following:
   * Objects representing retrieved data should be *immutable* in most cases.
   * Use cursors where possible for batch processing of queries, instead of bulk-loading data into a collection of "persistable" objects.
   * In the batch processing case, reduce object creation / garbage collection by proxying a single adapter object to the underlying ResultSet 
+
+Downloads
+---------
+
+HSD is distributed via Maven Central, and can be downloaded from [here](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.youdevise%22%20a%3A%22hsd%22).
