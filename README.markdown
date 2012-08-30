@@ -13,5 +13,13 @@ HSD is *opinionated software*. Among the opinions it promotes are the following:
 
 Downloads
 ---------
+HSD is distributed via maven central, and can be downloaded [here](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.youdevise%22%20a%3A%22hsd%22).
 
-HSD is distributed via Maven Central, and can be downloaded from [here](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.youdevise%22%20a%3A%22hsd%22).
+```xml
+<dependency>
+    <groupId>com.youdevise</groupId>
+    <artifactId>hsd</artifactId>
+    <version>0.3</version>
+</dependency>
+```
+
