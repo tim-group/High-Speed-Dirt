@@ -5,12 +5,12 @@ import java.sql.SQLException;
 
 public class ResultSetTraverser implements Traverser<ResultSet> {
 
-    public static ResultSetTraverser forHandler(Handler<ResultSet, Boolean> handler) {
+    public static ResultSetTraverser forHandler(SQLHandler<ResultSet> handler) {
         return new ResultSetTraverser(handler);
     }
     
-    private final Handler<ResultSet, Boolean> handler;
-    private ResultSetTraverser(Handler<ResultSet, Boolean> handler) {
+    private final SQLHandler<ResultSet> handler;
+    private ResultSetTraverser(SQLHandler<ResultSet> handler) {
         this.handler = handler;
     }
     

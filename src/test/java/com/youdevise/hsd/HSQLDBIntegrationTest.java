@@ -79,7 +79,7 @@ public class HSQLDBIntegrationTest {
     
     private final class ResultSetBasedHandler implements ResultSetHandler {
         @Override
-        public Boolean handle(ResultSet arg) throws SQLException {
+        public boolean handle(ResultSet arg) throws SQLException {
             int id = arg.getInt(1);
             String name = arg.getString(2);
             return id > -1 && name.length() > 0;
@@ -103,7 +103,7 @@ public class HSQLDBIntegrationTest {
     }
     
     public class ProxyBasedHandler implements ProxyHandler<Record> {
-        @Override public Boolean handle(Record cursor) {
+        @Override public boolean handle(Record cursor) {
             int id = cursor.getId();
             String name = cursor.getName();
             return id > -1 && name.length() > 0;
@@ -112,7 +112,7 @@ public class HSQLDBIntegrationTest {
     
     public class EnumBasedHandler implements EnumIndexedCursorHandler<Fields> {
         @Override
-        public Boolean handle(EnumIndexedCursor<Fields> cursor) {
+        public boolean handle(EnumIndexedCursor<Fields> cursor) {
             int id = cursor.getInt(Fields.id);
             String name = cursor.<String>get(Fields.name);
             return id > -1 && name.length() > 0;

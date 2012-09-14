@@ -18,7 +18,7 @@ public class BenchmarkASMAgainstProxyTest {
     
     private static class TestProxyHandler implements ProxyHandler<Record> {
         @Override
-        public Boolean handle(Record arg) throws SQLException {
+        public boolean handle(Record arg) throws SQLException {
             String output = String.format("%s, %s, %s, %s, %s, %s",
                     arg.getFoo(),
                     arg.getBar(),

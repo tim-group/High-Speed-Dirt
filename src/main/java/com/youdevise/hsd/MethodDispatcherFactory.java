@@ -20,10 +20,11 @@ public class MethodDispatcherFactory {
             this.fields = fields;
         }
         
+        @Override
         public EnumIndexedCursorHandler<E> to(final T target) {
             return new EnumIndexedCursorHandler<E>() {
                 @Override
-                public Boolean handle(EnumIndexedCursor<E> handler) {
+                public boolean handle(EnumIndexedCursor<E> handler) {
                     Object[] params = new Object[fields.length];
                     for (int i=0; i<fields.length; i++) {
                         params[i] = handler.get(fields[i]);

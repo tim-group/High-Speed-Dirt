@@ -6,7 +6,7 @@ public final class Traversers {
 
     private Traversers() { }
     
-    public static Traverser<ResultSet> adapt(Handler<ResultSet, Boolean> resultSetHandler) {
+    public static Traverser<ResultSet> adapt(SQLHandler<ResultSet> resultSetHandler) {
         return ResultSetTraverser.forHandler(resultSetHandler);
     }
 
@@ -14,11 +14,11 @@ public final class Traversers {
         return AdaptingTraverser.adapting(ResultSetTransformer.transforming(enumClass), traverser);
     }
 
-    public static <E extends Enum<E>> Traverser<ResultSet> adapt(Class<E> enumClass, Handler<EnumIndexedCursor<E>, Boolean> cursorHandler) {
+    public static <E extends Enum<E>> Traverser<ResultSet> adapt(Class<E> enumClass, SQLHandler<EnumIndexedCursor<E>> cursorHandler) {
         return adapt(enumClass, EnumIndexedCursorTraverser.forHandler(cursorHandler));
     }
 
-    public static <T, E extends Enum<E>> Traverser<ResultSet> adapt(Class<T> proxyClass, Class<E> enumClass, Handler<T, Boolean> proxyHandler) {
+    public static <T, E extends Enum<E>> Traverser<ResultSet> adapt(Class<T> proxyClass, Class<E> enumClass, SQLHandler<T> proxyHandler) {
         return adapt(enumClass, ProxyHandlingTraverser.proxying(proxyClass, enumClass, proxyHandler));
     }
 }

@@ -4,13 +4,13 @@ import java.sql.SQLException;
 
 public class EnumIndexedCursorTraverser<E extends Enum<E>> implements Traverser<EnumIndexedCursor<E>> {
     
-    public static <E extends Enum<E>> EnumIndexedCursorTraverser<E> forHandler(Handler<EnumIndexedCursor<E>, Boolean> handler) {
+    public static <E extends Enum<E>> EnumIndexedCursorTraverser<E> forHandler(SQLHandler<EnumIndexedCursor<E>> handler) {
         return new EnumIndexedCursorTraverser<E>(handler);
     }
     
-    private final Handler<EnumIndexedCursor<E>, Boolean> handler;
+    private final SQLHandler<EnumIndexedCursor<E>> handler;
     
-    private EnumIndexedCursorTraverser(Handler<EnumIndexedCursor<E>, Boolean> handler) {
+    private EnumIndexedCursorTraverser(SQLHandler<EnumIndexedCursor<E>> handler) {
         this.handler = handler;
     }
     
